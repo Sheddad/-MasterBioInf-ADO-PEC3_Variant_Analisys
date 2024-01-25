@@ -1,0 +1,266 @@
+---
+title: "PEC 3 Análisis de Datos Ómicos"
+author: "Sheddad Kaid-Salah Ferrón"
+date: "`r format(Sys.Date())`"
+params:
+  printcode:
+    label: "Display Code:"
+    value: TRUE # or set it to FALSE
+output:
+   html_document:
+    code_folding: hide
+    toc: true
+    toc_float: no
+    toc_depth: 3
+    theme: flatly
+    highlight: textmate
+    number_sections: true
+    csl: vancouver.csl
+editor_options: 
+  chunk_output_type: console
+bibliography: PEC3_ADO_Ref.bib
+---
+
+```{r setup, include=FALSE}
+# Parametrizamos
+require(knitr)
+# include this code chunk as-is to set options
+opts_chunk$set(comment = NA, prompt = TRUE, tidy = FALSE, 
+               fig.width = 7, fig.height = 7, echo = params$printcode, 
+               message = FALSE, warning = FALSE, cache=FALSE)
+Sys.setlocale("LC_TIME", "C")
+```
+
+-----------------------------------------------------------
+
+# Introducción y Objetivos
+
+El objetivo de esta actividad es hacer una introducción de forma práctica al 
+uso, por un lado, del software [Galaxy](https://usegalaxy.org/) y, por otro, de 
+[Bioconductor](https://www.bioconductor.org/), el proyecto de código abierto que
+proporciona herramientas y recursos para el análisis y la visualización de datos
+en bioinformática. En nuestro caso utilizaremos *Bioconductor* y R para analizar 
+datos de NGS. 
+
+Para ello descargaremos y manipularemos unos datos de NGS, los exploraremos para
+saber su estructura y realizaremos un control de calidad.
+
+Finalmente, presentaremos en este informe los resultados obtenidos y valoraremos
+la calidad de los datos así como las diferentes técnicas utilizadas.
+
+# Material y Métodos  {.tabset .tabset-fade .tabset-pills}
+
+El material que se ha proporcionado para la realicación de la ha sido un archivo 
+en formato .fastq, en concreto hemos descargado y utilizado el archivo 
+*S07_Ves02_read1.fastq*. Se trata de un archivo en formato FASTQ. Este formato 
+se utiliza comúnmente para almacenar datos de secuenciación de ADN, ARN u otras 
+moléculas biológicas y representar lecturas (o secuencias cortas) generadas por 
+tecnologías de secuenciación de nueva generación (NGS). Estas son las lecturas 
+en crudo o *raw data*.
+Un archivo FASTQ contiene información para cada lectura en el siguiente formato:
+  
+**@identificador_de_la_secuencia    
+secuencia_de_nucleótidos  
++   
+calidad_de_los_nucleótidos**  
+  
+donde:
+
+* **@identificador_de_la_secuencia**: es una línea que comienza con el símbolo 
+"@" y contiene información sobre la secuencia, como un identificador único.
+* **secuencia_de_nucleótidos**: es la secuencia de nucleótidos (A, T, C, G) correspondiente a la lectura.
+* **+**: a menudo se utiliza para indicar que la siguiente línea contendrá la 
+calidad de los nucleótidos.
+* **calidad_de_los_nucleótidos**: es la línea que contiene valores que 
+representan la calidad de cada nucleótido en la secuencia. Se utiliza el *Phred 
+Quality Score* y se codifica en caracteres ASCII.  
+
+El **Phred Quality Score** es una medida de la calidad de las lecturas generadas
+por secuenciadores de ADN. Fue introducido por Brent Ewing en 1998 y se utiliza 
+para evaluar la confiabilidad de cada base individual en una secuencia de ADN.
+ 
+$$  
+Q = -10\log_{10}(P)
+$$
+donde:
+  
+* Q es el Phred Quality Score
+* P es la probabilidad de que la base sea incorrecta
+
+Los valores más altos de Q indican mayor calidad.
+Por ejemplo, un valor de Q = 20 indica una probabilidad de error del 1%, 
+y uno de Q = 30 una probabilidad de error de 0.1% 
+
+Para analizar estos datos en crudo vamos a utilizar las herramientas *Galaxy* 
+y *Bioconductor*.  
+
+**Galaxy** es software en línea que proporciona una GUI a través de un navegador 
+web y permite realizar análisis de datos biológicos sin la necesidad de 
+programación directa.
+
+**Bioconductor** es un conjunto de paquetes y herramientas específicos para 
+el análisis de datos biológicos utilizando el lenguaje de programación 
+estadística R.
+
+Haremos un análisis de la calidad de nuestras secuencias con ambas herramientas y 
+compararemos los resultados obtenidos.
+
+## Carga de datos
+
+Cargamos los datos 
+
+## Control de Calidad
+
+El uso de FastQC en *Galaxy* es fácil. Una vez cargados los datos de secuenciación,
+realiza un informe en el que aparecen distintas gráficas y estadísticas en las 
+que se hace una valoración de la calidad de los datos de varias formas distintas.
+  
+En este caso he optado por incorporar las imágenes de las gráficas generadas 
+para nuestros datos.
+
+**Basic Statistics ** 
+
+FastQC nos ofrece este informe en el que nos aporta información sobre varios 
+aspectos del archivo con las secuencias.  
+Vemos que el formato del archivo es en .fastq, contiene 25000 secuencias de un 
+tamaño de 50 bases cada una.  
+Además se utiliza una codificación Sanger con el sistema de codificación de 
+calidad de Illumina 1.9.
+
+**Sequence Counts**
+
+```{r, out.width='50%', fig.align='center', echo = FALSE}
+knitr::include_graphics("img/QC/fastqc_sequence_counts_plot.png")
+```
+
+**Sequence quality **
+
+La calidad de la secuencia es buena.
+
+```{r, out.width='50%', fig.align='center', echo = FALSE}
+knitr::include_graphics("img/QC/fastqc_per_base_sequence_quality_plot.png")
+```
+
+**Per sequence quality scores **
+
+Las puntuaciones de calidad por secuencia son buenas.
+
+```{r, out.width='50%', fig.align='center', echo = FALSE}
+knitr::include_graphics("img/QC/fastqc_per_sequence_quality_scores_plot.png")
+```
+  
+**Per sequence GC content **
+
+Vemos que el contenido de GC por secuencia no está del todo bien y no coincide 
+con el teórico.
+
+```{r, out.width='50%', fig.align='center', echo = FALSE}
+knitr::include_graphics("img/QC/fastqc_per_sequence_gc_content_plot.png")
+```
+
+**Per base N content **
+
+El contenido de %N por base es bueno.
+
+```{r, out.width='50%', fig.align='center', echo = FALSE}
+knitr::include_graphics("img/QC/fastqc_per_base_n_content_plot.png")
+```
+
+**Sequence Length Distribution **
+
+La distribución de la longitud de la secuencia es de 50 pb.
+
+```{r, out.width='50%', fig.align='center', echo = FALSE}
+knitr::include_graphics("img/QC/fastqc_sequence_duplication_levels_plot.png")
+```
+
+**Sequence Duplication Levels **
+
+Los niveles de duplicación de secuencia no son buenos.
+
+```{r, out.width='50%', fig.align='center', echo = FALSE}
+knitr::include_graphics("img/QC/fastqc_sequence_duplication_levels_plot.png")
+```
+
+**Adapter Content **
+
+```{r, out.width='50%', fig.align='center', echo = FALSE}
+knitr::include_graphics("img/QC/fastqc_adapter_content_plot.png")
+```
+
+**Status Checks **
+
+```{r, out.width='50%', fig.align='center', echo = FALSE}
+knitr::include_graphics("img/QC/fastqc-status-check-heatmap.png")
+```
+
+## Alineación de los "reads" con el genoma
+
+```{r, out.width='100%', fig.align='center', echo = FALSE}
+knitr::include_graphics("img/3_1.png")
+```
+
+Archivo BAM
+
+```{r, out.width='100%', fig.align='center', echo = FALSE}
+knitr::include_graphics("img/3_2.png")
+```
+
+
+## Búsquedad de las diferencias
+
+Realizamos unas estadísticas con el archivo BAM
+
+```{r, out.width='100%', fig.align='center', echo = FALSE}
+knitr::include_graphics("img/4_1.png")
+```
+
+```{r, out.width='50%', fig.align='center', echo = FALSE}
+knitr::include_graphics("img/4_2.png")
+```
+
+## Visualización de los archivos BAM
+
+## Filtrage y Anotación de las variantes
+    
+# Resultados {.tabset .tabset-fade .tabset-pills}
+
+Como ya se ha comentado antes, las dos herramientas que hemos utilizado para
+para analizar la calidad de los datos han sido **Galaxy* y *Bioconductor*.
+
+En *Galaxy* hemos utilizado la herramienta **FastQC**. FastQC es un programa de 
+control de calidad de secuenciación de alto rendimiento. Ha sido implementada 
+en Java por [Babraham Bioinformatics](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/).  
+*Galaxy* lo incorpora en su suit de herramientas bioinformáticas y podemos
+utilizarlo de forma muy cómoda.  
+
+En *Bioconductor* hemos utilizado el paquete **Rqc**, una herramienta optimizada 
+para el control de calidad y evaluación de datos de secuenciación de alto 
+rendimiento.  
+
+
+# Discusión y Limitaciones
+
+Los resultados que hemos obtenidos con ambas herramientas, tanto con *Galaxy* como
+con el paquete *Rqc* de *Bioconductor* han sido equivalentes, a pesar de que 
+difieren un poco.  
+
+Por un lado vemos que ciertos controles de calidad han dado altos por lo que 
+podríamos aceptar los datos y darlos por buenos, pero por otro lado, ha habido 
+otros controles que han dado una mala calidad. 
+Estos último nos podría hacer plantear un procesado de los datos para mejorar 
+ciertos aspectos de la secuenciación con el objetico de obtener una mejor 
+calidad, pero este aspecto del trabajo queda fuera del alcance de esta práctica.
+
+
+# Coclusiones
+
+Hemos podido hacer un análisis de la estructura y de la calidad de las 
+secuencias que contenía nuestro archivo .fastq utilizando dos herramientas 
+bioinformàticas, *Galaxy* y el paquete *Rqc* de *Bioconductor*. Ambas nos han 
+dado resultados equivalentes. 
+Con *Galaxy*, a través del programa FASTQC tenemos la ventaja de no tener que 
+utilizar lenguaje de programación alguno o poseer conocimientos muy técnicos.   
+Con *Bioconductor*, para utilizar el paquete *Rqc* hemos tenido que utilizar R,
+que nos da bastante más flexibilidad.  
+
